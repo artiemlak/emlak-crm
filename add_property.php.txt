@@ -1,0 +1,106 @@
+<?php
+session_start();
+if(!isset($_SESSION['user_id'])){
+    header("Location: index.php");
+    exit;
+}
+include "db.php";
+
+$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$title = $type = $rooms = $floor = $area = $age = $deposit = $balcony = $heating = $city_view = $region = $price = $image = '';
+
+if($id){
+    $res = $conn->query("SELECT * FROM properties WHERE id=$id");
+    $prop = $res->fetch_assoc();
+    $title = $prop['title'];
+    $type = $prop['type'];
+    $rooms = $prop['rooms'];
+    $floor = $prop['floor'];
+    $area = $prop['area'];
+    $age = $prop['age'];
+    $deposit = $prop['deposit'];
+    $balcony = $prop['balcony'];
+    $heating = $prop['heating'];
+    $city_view = $prop['city_view'];
+    $region = $prop['region'];
+    $price = $prop['price'];
+    $image = $prop['image'];
+}
+
+if(isset($_POST['submit'])){
+    $title = $_POST['title'];
+    $type = $_POST['type'];
+    $rooms = $_POST['rooms'];
+    $floor = $_POST['floor'];
+    $area = $_POST['area'];
+    $age = $_POST['age'];
+    $deposit = isset($_POST['deposit']) ? 1 : 0;
+    $balcony = isset($_POST['balcony']) ? 1 : 0;
+    $heating = $_POST['heating'];
+    $city_view = isset($_POST['city_view']) ? 1 : 0;
+    $region = $_POST['region'];
+    $price = $_POST['price'];
+
+    // Resim yükleme
+    if(isset($_FILES['image']) && $_FILES['image']['name']){
+        $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+        $newName = time().".".$ext;
+        move_uploaded_file($_FILES['image']['tmp_name'], "uploads/".$newName);
+        $image = $newName;
+    }
+
+    if($id){
+        $conn->query("UPDATE properties SET 
+            title='$title', type='$type', rooms='$rooms', floor='$floor', area='$area', age='$age',
+            deposit='$deposit', balcony='$balcony', heating='$heating', city_view='$city_view',
+            region='$region', price='$price', image='$image' WHERE id=$id");
+    } else {
+        $conn->query("INSERT INTO properties
+            (title,type,rooms,floor,area,age,deposit,balcony,heating,city_view,region,price,image) VALUES
+            ('$title','$type','$rooms','$floor','$area','$age','$deposit','$balcony','$heating','$city_view','$region','$price','$image')");
+    }
+
+    header("Location: properties.php");
+}
+?>
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title><?php echo $id ? 'İlan Düzenle' : 'Yeni İlan'; ?></title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<?php include "navbar.php"; ?>
+<div class="container">
+    <h2><?php echo $id ? 'İlan Düzenle' : 'Yeni İlan'; ?></h2>
+    <form method="post" enctype="multipart/form-data">
+        <input type="text" name="title" placeholder="Başlık" value="<?php echo $title; ?>" required>
+        <select name="type" required>
+            <option value="satılık" <?php if($type=='satılık') echo 'selected'; ?>>Satılık</option>
+            <option value="kiralık" <?php if($type=='kiralık') echo 'selected'; ?>>Kiralık</option>
+        </select>
+        <input type="number" name="rooms" placeholder="Oda Sayısı" value="<?php echo $rooms; ?>" required>
+        <input type="number" name="floor" placeholder="Kat" value="<?php echo $floor; ?>">
+        <input type="number" name="area" placeholder="Metrekare" value="<?php echo $area; ?>">
+        <input type="number" name="age" placeholder="Bina Yaşı" value="<?php echo $age; ?>">
+        <label><input type="checkbox" name="deposit" <?php if($deposit) echo 'checked'; ?>> Depo</label>
+        <label><input type="checkbox" name="balcony" <?php if($balcony) echo 'checked'; ?>> Balkon</label>
+        <input type="text" name="heating" placeholder="Isıtma Tipi" value="<?php echo $heating; ?>">
+        <label><input type="checkbox" name="city_view" <?php if($city_view) echo 'checked'; ?>> Şehir Manzaralı</label>
+        <select name="region" required>
+            <option value="Emek" <?php if($region=='Emek') echo 'selected'; ?>>Emek</option>
+            <option value="Bahçelievler" <?php if($region=='Bahçelievler') echo 'selected'; ?>>Bahçelievler</option>
+            <option value="Beştepe" <?php if($region=='Beştepe') echo 'selected'; ?>>Beştepe</option>
+            <option value="Tandoğan" <?php if($region=='Tandoğan') echo 'selected'; ?>>Tandoğan</option>
+            <option value="Mebusevleri" <?php if($region=='Mebusevleri') echo 'selected'; ?>>Mebusevleri</option>
+        </select>
+        <input type="number" name="price" placeholder="Fiyat" value="<?php echo $price; ?>" required>
+        <input type="file" name="image">
+        <?php if($image) echo "<img src='uploads/$image' width='100'>"; ?>
+        <button type="submit" name="submit"><?php echo $id ? 'Güncelle' : 'Ekle'; ?></button>
+    </form>
+</div>
+</body>
+</html>

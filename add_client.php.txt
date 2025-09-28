@@ -1,0 +1,92 @@
+<?php
+session_start();
+if(!isset($_SESSION['user_id'])){
+    header("Location: index.php");
+    exit;
+}
+include "db.php";
+
+$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$name = $phone = $email = $request_type = $rooms = $price_range = $floor = $region = $notes = $status = '';
+
+if($id){
+    $res = $conn->query("SELECT * FROM clients WHERE id=$id");
+    $client = $res->fetch_assoc();
+    $name = $client['name'];
+    $phone = $client['phone'];
+    $email = $client['email'];
+    $request_type = $client['request_type'];
+    $rooms = $client['rooms'];
+    $price_range = $client['price_range'];
+    $floor = $client['floor'];
+    $region = $client['region'];
+    $notes = $client['notes'];
+    $status = $client['status'];
+}
+
+if(isset($_POST['submit'])){
+    $name = $_POST['name'];
+    $phone = $_POST['phone'];
+    $email = $_POST['email'];
+    $request_type = $_POST['request_type'];
+    $rooms = $_POST['rooms'];
+    $price_range = $_POST['price_range'];
+    $floor = $_POST['floor'];
+    $region = $_POST['region'];
+    $notes = $_POST['notes'];
+    $status = $_POST['status'];
+
+    if($id){
+        $conn->query("UPDATE clients SET 
+            name='$name', phone='$phone', email='$email', request_type='$request_type',
+            rooms='$rooms', price_range='$price_range', floor='$floor', region='$region',
+            notes='$notes', status='$status' WHERE id=$id");
+    } else {
+        $conn->query("INSERT INTO clients 
+            (name,phone,email,request_type,rooms,price_range,floor,region,notes,status) VALUES
+            ('$name','$phone','$email','$request_type','$rooms','$price_range','$floor','$region','$notes','$status')");
+    }
+    header("Location: clients.php");
+}
+?>
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title><?php echo $id ? 'Müşteri Düzenle' : 'Yeni Müşteri'; ?></title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<?php include "navbar.php"; ?>
+<div class="container">
+    <h2><?php echo $id ? 'Müşteri Düzenle' : 'Yeni Müşteri'; ?></h2>
+    <form method="post">
+        <input type="text" name="name" placeholder="İsim" value="<?php echo $name; ?>" required>
+        <input type="text" name="phone" placeholder="Telefon" value="<?php echo $phone; ?>" required>
+        <input type="email" name="email" placeholder="E-posta" value="<?php echo $email; ?>" required>
+        <select name="request_type" required>
+            <option value="satılık" <?php if($request_type=='satılık') echo 'selected'; ?>>Satılık</option>
+            <option value="kiralık" <?php if($request_type=='kiralık') echo 'selected'; ?>>Kiralık</option>
+        </select>
+        <input type="number" name="rooms" placeholder="Oda Sayısı" value="<?php echo $rooms; ?>" required>
+        <input type="text" name="price_range" placeholder="Fiyat Aralığı" value="<?php echo $price_range; ?>" required>
+        <input type="number" name="floor" placeholder="Kat" value="<?php echo $floor; ?>">
+        <select name="region" required>
+            <option value="Emek" <?php if($region=='Emek') echo 'selected'; ?>>Emek</option>
+            <option value="Bahçelievler" <?php if($region=='Bahçelievler') echo 'selected'; ?>>Bahçelievler</option>
+            <option value="Beştepe" <?php if($region=='Beştepe') echo 'selected'; ?>>Beştepe</option>
+            <option value="Tandoğan" <?php if($region=='Tandoğan') echo 'selected'; ?>>Tandoğan</option>
+            <option value="Mebusevleri" <?php if($region=='Mebusevleri') echo 'selected'; ?>>Mebusevleri</option>
+        </select>
+        <textarea name="notes" placeholder="Notlar"><?php echo $notes; ?></textarea>
+        <select name="status" required>
+            <option value="yeni" <?php if($status=='yeni') echo 'selected'; ?>>Yeni</option>
+            <option value="görüşmede" <?php if($status=='görüşmede') echo 'selected'; ?>>Görüşmede</option>
+            <option value="tamamlandı" <?php if($status=='tamamlandı') echo 'selected'; ?>>Tamamlandı</option>
+        </select>
+        <button type="submit" name="submit"><?php echo $id ? 'Güncelle' : 'Ekle'; ?></button>
+    </form>
+</div>
+</body>
+</html>

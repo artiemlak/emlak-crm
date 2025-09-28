@@ -1,0 +1,45 @@
+<?php
+session_start();
+include "db.php";
+
+if(isset($_POST['login'])){
+    $email = $_POST['email'];
+    $password = $_POST['password'];
+
+    $res = $conn->query("SELECT * FROM users WHERE email='$email'");
+    if($res->num_rows > 0){
+        $user = $res->fetch_assoc();
+        if(password_verify($password, $user['password'])){
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_name'] = $user['name'];
+            $_SESSION['role'] = $user['role'];
+            header("Location: dashboard.php");
+            exit;
+        } else {
+            $error = "Şifre yanlış!";
+        }
+    } else {
+        $error = "Kullanıcı bulunamadı!";
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>CRM Giriş</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="login-container">
+    <h2>Emlak CRM Giriş</h2>
+    <?php if(isset($error)) echo "<p class='error'>$error</p>"; ?>
+    <form method="post">
+        <input type="email" name="email" placeholder="E-posta" required>
+        <input type="password" name="password" placeholder="Şifre" required>
+        <button type="submit" name="login">Giriş Yap</button>
+    </form>
+</div>
+</body>
+</html>

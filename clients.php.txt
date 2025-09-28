@@ -1,0 +1,63 @@
+<?php
+session_start();
+if(!isset($_SESSION['user_id'])){
+    header("Location: index.php");
+    exit;
+}
+include "db.php";
+
+// Silme işlemi
+if(isset($_GET['delete'])){
+    $id = intval($_GET['delete']);
+    $conn->query("DELETE FROM clients WHERE id=$id");
+    header("Location: clients.php");
+}
+
+// Müşteri listesi
+$result = $conn->query("SELECT * FROM clients ORDER BY created_at DESC");
+?>
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Müşteriler</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<?php include "navbar.php"; ?>
+<div class="container">
+    <h2>Müşteri Listesi</h2>
+    <a href="add_client.php" class="btn">Yeni Müşteri Ekle</a>
+    <table border="1" cellpadding="10" cellspacing="0">
+        <tr>
+            <th>İsim</th>
+            <th>Telefon</th>
+            <th>E-posta</th>
+            <th>Talep Türü</th>
+            <th>Oda</th>
+            <th>Fiyat Aralığı</th>
+            <th>Bölge</th>
+            <th>Durum</th>
+            <th>İşlemler</th>
+        </tr>
+        <?php while($row = $result->fetch_assoc()){ ?>
+        <tr>
+            <td><?php echo $row['name']; ?></td>
+            <td><?php echo $row['phone']; ?></td>
+            <td><?php echo $row['email']; ?></td>
+            <td><?php echo $row['request_type']; ?></td>
+            <td><?php echo $row['rooms']; ?></td>
+            <td><?php echo $row['price_range']; ?></td>
+            <td><?php echo $row['region']; ?></td>
+            <td><?php echo $row['status']; ?></td>
+            <td>
+                <a href="add_client.php?id=<?php echo $row['id']; ?>">Düzenle</a> | 
+                <a href="clients.php?delete=<?php echo $row['id']; ?>" onclick="return confirm('Silmek istediğine emin misin?')">Sil</a>
+            </td>
+        </tr>
+        <?php } ?>
+    </table>
+</div>
+</body>
+</html>

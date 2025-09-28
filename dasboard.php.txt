@@ -1,0 +1,31 @@
+<?php
+session_start();
+if(!isset($_SESSION['user_id'])){
+    header("Location: index.php");
+    exit;
+}
+include "db.php";
+
+// Müşteri ve ilan sayısı
+$clientsCount = $conn->query("SELECT * FROM clients")->num_rows;
+$propertiesCount = $conn->query("SELECT * FROM properties")->num_rows;
+?>
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>CRM Dashboard</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<?php include "navbar.php"; ?>
+<div class="container">
+    <h2>Hoşgeldiniz, <?php echo $_SESSION['user_name']; ?>!</h2>
+    <div class="stats">
+        <div>Müşteriler: <?php echo $clientsCount; ?></div>
+        <div>İlanlar: <?php echo $propertiesCount; ?></div>
+    </div>
+</div>
+</body>
+</html>

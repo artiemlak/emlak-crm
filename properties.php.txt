@@ -1,0 +1,68 @@
+<?php
+session_start();
+if(!isset($_SESSION['user_id'])){
+    header("Location: index.php");
+    exit;
+}
+include "db.php";
+
+// Silme işlemi
+if(isset($_GET['delete'])){
+    $id = intval($_GET['delete']);
+    $res = $conn->query("SELECT image FROM properties WHERE id=$id");
+    $row = $res->fetch_assoc();
+    if($row['image'] && file_exists('uploads/'.$row['image'])){
+        unlink('uploads/'.$row['image']);
+    }
+    $conn->query("DELETE FROM properties WHERE id=$id");
+    header("Location: properties.php");
+}
+
+// İlan listesi
+$result = $conn->query("SELECT * FROM properties ORDER BY created_at DESC");
+?>
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>İlanlar</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<?php include "navbar.php"; ?>
+<div class="container">
+    <h2>İlan Listesi</h2>
+    <a href="add_property.php" class="btn">Yeni İlan Ekle</a>
+    <table border="1" cellpadding="10" cellspacing="0">
+        <tr>
+            <th>Başlık</th>
+            <th>Tür</th>
+            <th>Oda</th>
+            <th>Kat</th>
+            <th>Metrekare</th>
+            <th>Bölge</th>
+            <th>Fiyat</th>
+            <th>Resim</th>
+            <th>İşlemler</th>
+        </tr>
+        <?php while($row = $result->fetch_assoc()){ ?>
+        <tr>
+            <td><?php echo $row['title']; ?></td>
+            <td><?php echo $row['type']; ?></td>
+            <td><?php echo $row['rooms']; ?></td>
+            <td><?php echo $row['floor']; ?></td>
+            <td><?php echo $row['area']; ?></td>
+            <td><?php echo $row['region']; ?></td>
+            <td><?php echo $row['price']; ?></td>
+            <td><?php if($row['image']) echo "<img src='uploads/".$row['image']."' width='80'>"; ?></td>
+            <td>
+                <a href="add_property.php?id=<?php echo $row['id']; ?>">Düzenle</a> | 
+                <a href="properties.php?delete=<?php echo $row['id']; ?>" onclick="return confirm('Silmek istediğine emin misin?')">Sil</a>
+            </td>
+        </tr>
+        <?php } ?>
+    </table>
+</div>
+</body>
+</html>
